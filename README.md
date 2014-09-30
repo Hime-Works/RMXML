@@ -7,7 +7,7 @@ Clone the project and then copy the following into your project's `System` folde
 * set.rb
 * encoding.rb
 
-Open rmxml in notepad and add the script into your project if you
+Open `rmxml.rb` in notepad and add the script into your project if you
 are not using an external script editor. Otherwise, simply require
 rmxml and you should be ready to go.
 
