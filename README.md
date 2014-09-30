@@ -8,8 +8,7 @@ Clone the project and then copy the following into your project's `System` folde
 * encoding.rb
 
 Open `rmxml.rb` in notepad and add the script into your project if you
-are not using an external script editor. Otherwise, simply require
-rmxml and you should be ready to go.
+are not using an external script editor.
 
 Main site:
 http://www.germane-software.com/software/rexml/
