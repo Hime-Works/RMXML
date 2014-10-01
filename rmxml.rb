@@ -28,7 +28,11 @@
  ** Installation
  
  In the script editor, place this script below Materials and above Main
- Place the following files in your System folder
+ 
+ You will need the required files from the project: 
+   https://github.com/Hime-Works/RMXML
+ 
+ Download and place the following files in your System folder
  
  - REXML folder
  - encoding.rb
