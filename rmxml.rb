@@ -17,7 +17,8 @@ module RMXML
   Tag_False = "n"
   Tag_True = "y"
   Tag_Nil = "z"
-  Tag_Ref = "r"
+  Tag_Ref = "p"
+  Tag_Range = "r"
   
   def self.save_data(obj, path)
     # create XML. Not sure how to add declaration
@@ -55,6 +56,7 @@ module RMXML
       Tag_Object => :add_object,
       Tag_True => :add_true,
       Tag_False => :add_false,
+      Tag_Range => :add_range,
       Tag_Nil => :add_nil
     }
     
@@ -117,6 +119,20 @@ module RMXML
       node.text = obj
     end
     
+    def self.add_range(node, obj)
+      child = node.add_element("i")
+      child.attributes["a"] = "begin"
+      child.text = obj.begin
+      
+      child = node.add_element("i")
+      child.attributes["a"] = "end"
+      child.text = obj.end
+
+      tag = obj.exclude_end? ? "y" : "n"
+      child = node.add_element(tag)
+      child.attributes["a"] = "exclude_end"
+    end
+    
     def self.add_reference(node, obj)
       node.text = @refs[obj]
     end
@@ -154,6 +170,8 @@ module RMXML
         Tag_True
       elsif obj.is_a?(FalseClass)
         Tag_False
+      elsif obj.is_a?(Range)
+        Tag_Range
       else
         Tag_Object
       end
@@ -172,13 +190,14 @@ module RMXML
       Tag_Hash   => :load_hash,
       Tag_Fixnum => :load_fixnum,
       Tag_Bignum => :load_bignum,
-      Tag_Float =>  :load_float,
+      Tag_Float  => :load_float,
       Tag_Symbol => :load_symbol,
       Tag_Object => :load_object,
       Tag_True   => :load_true,
       Tag_False  => :load_false,
       Tag_Nil    => :load_nil,
-      Tag_Ref    => :load_ref
+      Tag_Ref    => :load_ref,
+      Tag_Range  => :load_range
     }
     
     def self.parse(node)
@@ -263,6 +282,13 @@ module RMXML
     
     def self.load_nil(node)
       return nil
+    end
+    
+    def self.load_range(node)
+      start = load_node(node.elements[1])
+      fin = load_node(node.elements[2])
+      excl_end = load_node(node.elements[3])
+      return Range.new(start, fin, excl_end)      
     end
     
     def self.load_ref(node)
