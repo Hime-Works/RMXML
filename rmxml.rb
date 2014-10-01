@@ -1,10 +1,71 @@
-$LOAD_PATH << "System" unless $LOAD_PATH.include?("System")
+=begin
+#===============================================================================
+ Title: RMXML
+ Author: Hime
+ Date: Sep 30, 2014
+ URL: http://himeworks.wordpress.com/2013/11/20/parameter-tables/
+--------------------------------------------------------------------------------
+ ** Change log
+ Oct 1, 2014
+   - fixed table parsing code
+ Sep 30, 2014
+   - Initial release
+--------------------------------------------------------------------------------   
+ ** Terms of Use
+ * Free to use in commercial or non-commercial projects
+ * No real support. The script is provided as-is
+ * Will do bug fixes, but no compatibility patches
+ * Features may be requested but no guarantees, especially if it is non-trivial
+ * Credits to Hime Works in your project
+ * Preserve this header
+--------------------------------------------------------------------------------
+ ** Description
+ 
+ This script provides methods for parsing and generating XML files for your
+ RPG Maker objects.
 
+--------------------------------------------------------------------------------
+ ** Installation
+ 
+ In the script editor, place this script below Materials and above Main
+ Place the following files in your System folder
+ 
+ - REXML folder
+ - encoding.rb
+ - stringio.rb
+ - set.rb
+
+--------------------------------------------------------------------------------
+ ** Usage
+ 
+ -- Saving data --
+ 
+ To export an object to an XML file, use the call
+ 
+    RMXML.save_data(obj, path)
+    
+ Where
+   `obj` is the object that you want to write out
+   `path` is where you want to save the XML file
+   
+ -- Loading data --
+ 
+ To load an object from an XML file, use the call
+ 
+    RMXML.load_data(path)
+     
+ This will return the ruby object stored in the specified path.
+
+#===============================================================================
+=end
+$imported = {} if $imported.nil?
+$imported["TH_RMXML"] = true
+#===============================================================================
+$LOAD_PATH << "System" unless $LOAD_PATH.include?("System")
 require 'encoding'
 require "rexml/document"
-
+#===============================================================================
 module RMXML
-  
   Tag_String = "s"
   Tag_Array = "a"
   Tag_Bignum = "j"
@@ -234,17 +295,17 @@ module RMXML
       add_node(node, obj.zsize)
 
       data = []
-      if dim == 3
-        for z in 0...obj.zsize
-          for y in 0...obj.ysize
-            for x in 0...obj.xsize
+      if dim == 3        
+        for z in 0...obj.zsize        
+          for x in 0...obj.xsize
+            for y in 0...obj.ysize            
               data << obj[x, y, z]
             end
           end
         end
       elsif dim == 2
-        for y in 0...obj.ysize
-          for x in 0...obj.xsize
+        for x in 0...obj.xsize
+          for y in 0...obj.ysize                    
             data << obj[x, y]
           end
         end
@@ -500,7 +561,7 @@ module RMXML
         obj = Table.new(xsize, ysize)
         for y in 0...obj.ysize
           for x in 0...obj.xsize
-            obj[y,x] = data[x * xsize + y]
+            obj[x, y] = data[y * xsize + x]
           end
         end
       elsif dim == 3
@@ -508,7 +569,7 @@ module RMXML
         for z in 0...obj.zsize
           for y in 0...obj.ysize
             for x in 0...obj.xsize
-              obj[x,y,z] = data[z * zsize + y * ysize + x]
+              obj[x, y, z] = data[z * ysize * xsize + y*xsize + x]
             end
           end
         end
