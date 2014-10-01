@@ -34,6 +34,10 @@ RMXML.save_data($game_actors, "my_actor_data.xml")
 myActors = RMXML.load_data("my_actor_data.xml")
 ````
 
+# Demo
+
+There's a demo. It's called Demo.zip. It gives a quick overview of some functions.
+
 # Resources
 
 Main site:
