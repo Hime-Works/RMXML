@@ -6,6 +6,7 @@ Clone the project and then copy the following into your project's `System` folde
 * rexml folder
 * set.rb
 * encoding.rb
+* stringio.rb (this allows you to encrypt your projects)
 
 Open `rmxml.rb` in notepad and add the script into your project if you
 are not using an external script editor.
