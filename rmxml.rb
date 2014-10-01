@@ -1,7 +1,6 @@
 $LOAD_PATH << "System" unless $LOAD_PATH.include?("System")
 
 require 'encoding'
-require 'rexml/rexml'
 require "rexml/document"
 
 module RMXML
@@ -31,11 +30,9 @@ module RMXML
     xml = REXML::Document.new
     Generator.generate(xml.root_node, obj)
     
-    # write it out
-    formatter = REXML::Formatters::Pretty.new
-    formatter.compact = true # This is the magic line that does what you need!
-    File.open(path,"w") do |f|      
-      formatter.write(xml, f)
+    # write it out. Preserve all original white-space in text nodes
+    File.open(path,"wb") do |f|      
+      xml.write(f, 2, true)
     end
   end
   
@@ -223,15 +220,37 @@ module RMXML
     end
     
     def self.add_table(node, obj)
+      xsize = obj.xsize
+      ysize = obj.ysize
+      zsize = obj.zsize
+      
+      dim = 1 
+      dim = 2 if ysize > 1
+      dim = 3 if zsize > 1
+      
+      add_node(node, dim)
       add_node(node, obj.xsize)
       add_node(node, obj.ysize)
       add_node(node, obj.zsize)
+
       data = []
-      for z in 0...obj.zsize
+      if dim == 3
+        for z in 0...obj.zsize
+          for y in 0...obj.ysize
+            for x in 0...obj.xsize
+              data << obj[x, y, z]
+            end
+          end
+        end
+      elsif dim == 2
         for y in 0...obj.ysize
           for x in 0...obj.xsize
-            data << obj[x,y,z]
+            data << obj[x, y]
           end
+        end
+      elsif dim == 1
+        for x in 0...obj.xsize
+          data << obj[x]
         end
       end
       add_node(node, data)
@@ -332,7 +351,8 @@ module RMXML
       # Build custom object
       method = Class_Map[node.attributes["c"]]
       if method
-        self.send(method, node, obj)
+        obj = self.send(method, node, obj)
+        @refs[id] = obj
       # Build regular object
       else
         node.elements.each do |elmt|
@@ -353,7 +373,7 @@ module RMXML
     end
     
     def self.load_string(node)
-      return node.text
+      return node.text || ""
     end
     
     def self.load_hash(node)
@@ -440,40 +460,60 @@ module RMXML
       return Time.new(year, month, day, hour, min, sec, utc_offset)
     end
     
-    def self.load_rect(node, obj)
-      obj.x = load_node(node.elements[1])
-      obj.y = load_node(node.elements[2])
-      obj.width = load_node(node.elements[3])
-      obj.height = load_node(node.elements[4])
+    def self.load_rect(node, obj)      
+      x = load_node(node.elements[1])
+      y = load_node(node.elements[2])
+      width = load_node(node.elements[3])
+      height = load_node(node.elements[4])
+      return Rect.new(x, y, width, height)
     end
     
     def self.load_tone(node, obj)
-      obj.red = load_node(node.elements[1])      
-      obj.green = load_node(node.elements[2])
-      obj.blue = load_node(node.elements[3])
-      obj.gray = load_node(node.elements[4])
+      red = load_node(node.elements[1])      
+      green = load_node(node.elements[2])
+      blue = load_node(node.elements[3])
+      gray = load_node(node.elements[4])
+      return Tone.new(red, green, blue, gray)
     end
     
     def self.load_color(node, obj)
-      obj.red = load_node(node.elements[1])      
-      obj.green = load_node(node.elements[2])
-      obj.blue = load_node(node.elements[3])
-      obj.alpha = load_node(node.elements[4])
+      red = load_node(node.elements[1])      
+      green = load_node(node.elements[2])
+      blue = load_node(node.elements[3])
+      alpha = load_node(node.elements[4])
+      return Color.new(red, green, blue, alpha)
     end
     
     def self.load_table(node, obj)
-      xsize = load_node(node.elements[1])
-      ysize = load_node(node.elements[2])
-      zsize = load_node(node.elements[3])
-      data = load_node(node.elements[4])
-      obj.resize(xsize, ysize, zsize)
-      for z in 0...obj.zsize
+      dim = load_node(node.elements[1])
+      xsize = load_node(node.elements[2])
+      ysize = load_node(node.elements[3])
+      zsize = load_node(node.elements[4])
+      data = load_node(node.elements[5])      
+      
+      if dim == 1
+        obj = Table.new(xsize)
+        for x in 0...obj.xsize
+          obj[x] = data[x]
+        end
+      elsif dim == 2
+        obj = Table.new(xsize, ysize)
         for y in 0...obj.ysize
           for x in 0...obj.xsize
-            obj[x,y,z] = data[z * zsize + y * ysize + x]
+            obj[y,x] = data[x * xsize + y]
+          end
+        end
+      elsif dim == 3
+        obj = Table.new(xsize, ysize, zsize)
+        for z in 0...obj.zsize
+          for y in 0...obj.ysize
+            for x in 0...obj.xsize
+              obj[x,y,z] = data[z * zsize + y * ysize + x]
+            end
           end
         end
       end
+      return obj
     end
   end
 end
